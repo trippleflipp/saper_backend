@@ -3,34 +3,39 @@ from flask_jwt_extended import create_access_token, jwt_required, JWTManager, ge
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from passlib.hash import sha256_crypt
+from config import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME
+
 
 app = Flask(__name__)
 CORS(app=app)
-app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this in production
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'  # Or your database URL
+app.config['JWT_SECRET_KEY'] = 'secret'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 jwt = JWTManager(app)
 db = SQLAlchemy(app)
 tables_created = False
 
-# Модель пользователя
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
-    role = db.Column(db.String(20), default='user') # Роль по умолчанию
+    role = db.Column(db.String(20), default='player')
 
-    def __init__(self, username, password, role='user'):
+    def __init__(self, username, password, role='player'):
         self.username = username
         self.password = sha256_crypt.encrypt(password)
         self.role = role
 
     def verify_password(self, password):
+        print(password, self.password)
         return sha256_crypt.verify(password, self.password)
 
     def get_id(self):
         return str(self.id)
+
 
 @app.before_request
 def before_request():
@@ -40,7 +45,7 @@ def before_request():
             db.create_all()
         tables_created = True
 
-# Маршрут регистрации
+
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -61,7 +66,6 @@ def register():
     return jsonify({'message': 'User created successfully'}), 201
 
 
-# Маршрут логина
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -76,7 +80,7 @@ def login():
     else:
         return jsonify({'message': 'Invalid credentials'}), 401
 
-# Пример защищенного маршрута (требует роль admin)
+
 @app.route('/admin', methods=['GET'])
 @jwt_required()
 def admin_route():
@@ -86,7 +90,7 @@ def admin_route():
     else:
         return jsonify({'message': 'Unauthorized'}), 403
 
-# Пример защищенного маршрута (требует аутентификацию)
+
 @app.route('/protected', methods=['GET'])
 @jwt_required()
 def protected():

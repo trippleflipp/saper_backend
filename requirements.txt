@@ -5,3 +5,5 @@ Flask-SQLAlchemy
 PyJWT
 SQLAlchemy
 passlib
+python-dotenv
+psycopg2
