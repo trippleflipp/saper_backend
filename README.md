@@ -1,7 +1,7 @@
 ## Установка необходимых зависимостей и компонентов
 
 1. [Python3.11](https://www.python.org/downloads/release/python-3119/)
-2. Клонируем репозиторий:
+2. Клонируем репозиторий (через PowerShell):
 ```
 git clone https://github.com/trippleflipp/kazik_backend.git
 ```
