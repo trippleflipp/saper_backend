@@ -3,11 +3,11 @@
 1. [Python3.11](https://www.python.org/downloads/release/python-3119/)
 2. Клонируем репозиторий (через PowerShell):
 ```
-git clone https://github.com/trippleflipp/kazik_backend.git
+git clone https://github.com/trippleflipp/saper_backend.git
 ```
 3. Заходим в папку проекта
 ```
-cd kazik_backend
+cd saper_backend
 ```
 4. Создаем venv:
 ```
