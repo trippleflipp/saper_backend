@@ -17,13 +17,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
+
 # --- Database Model ---
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False)  # Store hashed passwords
+    password = db.Column(db.String(60), nullable=False)
     role = db.Column(db.String(20), default='player')
+    coins = db.Column(db.Integer, nullable=False, default=10)
 
     def __repr__(self):
         return f"User('{self.username}', '{self.role}')"
@@ -32,7 +34,8 @@ class User(db.Model):
         return {
             'id': self.id,
             'username': self.username,
-            'role': self.role
+            'role': self.role,
+            'coins': self.coins
         }
     
 class Difficulty(enum.Enum):
@@ -42,7 +45,7 @@ class Difficulty(enum.Enum):
 
 class Leaderboard(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.datetime.now())
+    created_at = db.Column(db.DateTime)
     milliseconds = db.Column(db.Integer, nullable=False)
     username = db.Column(db.String(50), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -103,15 +106,15 @@ def token_required(f):
 
         try:
             data = verify_token(token)
-            if isinstance(data, str):  # Error message from verify_token
-                return jsonify({'message': data}), 401  # Return the error message
+            if isinstance(data, str):
+                return jsonify({'message': data}), 401
 
             current_user = User.query.filter_by(id=data['id']).first()
 
         except:
             return jsonify({'message': 'Token is invalid!'}), 401
 
-        return f(current_user, *args, **kwargs)  # Pass the user to the decorated function
+        return f(current_user, *args, **kwargs)
 
     return decorated
 
@@ -121,12 +124,11 @@ def admin_required(f):
     @token_required
     def decorated(current_user, *args, **kwargs):
         if current_user.role != 'admin':
-            return jsonify({'message': 'Cannot perform that function!'}), 403  # Forbidden
+            return jsonify({'message': 'Cannot perform that function!'}), 403
 
         return f(current_user, *args, **kwargs)
 
     return decorated
-
 
 
 # --- API Endpoints ---
@@ -141,11 +143,9 @@ def register():
     if not username or not password:
         return jsonify({'message': 'Username and password are required'}), 400
 
-    # Check if username or email already exists
     existing_user = User.query.filter((User.username == username)).first()
     if existing_user:
         return jsonify({'message': 'Username already exists'}), 400
-
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
     new_user = User(username=username, password=hashed_password)
@@ -193,6 +193,7 @@ def new_record(current_user):
         return jsonify({'message': 'Invalid data.  Requires: milliseconds (integer), difficulty (easy, medium, hard)'}), 400
 
     new_record = Leaderboard(
+        created_at=datetime.datetime.now(),
         milliseconds=milliseconds,
         username=current_user.username,
         user_id=current_user.id,
@@ -200,7 +201,9 @@ def new_record(current_user):
     )
 
     db.session.add(new_record)
-    db.session.commit()  
+    db.session.commit()
+    current_user.coins += 15
+    db.session.commit()
 
     top_10 = Leaderboard.query.filter_by(difficulty=difficulty).order_by(Leaderboard.milliseconds.asc()).limit(10).all()
 
@@ -210,23 +213,49 @@ def new_record(current_user):
              record_to_remove = all_records[-1]
              db.session.delete(record_to_remove)
              db.session.commit()
+        
+        current_user.coins += 985
+        db.session.commit()
 
-        return jsonify({'message': 'New record submitted and is in the top 10!', 'record_id': new_record.id}), 201
+        return jsonify({'message': 'New record submitted and is in the top 10!'}), 201
 
     else:
         db.session.delete(new_record)
         db.session.commit()
         return jsonify({'message': 'New record submitted, but it is not in the top 10.'}), 200
-    
+
 
 @app.route("/get_records", methods=['GET'])
 def get_records():
     all_results = {}
     for difficulty in Difficulty:
-        top_10 = Leaderboard.query.filter_by(difficulty=difficulty).order_by(Leaderboard.milliseconds.asc()).limit(10).all()
+        top_10 = Leaderboard.query.filter_by(difficulty=difficulty).order_by(Leaderboard.milliseconds.asc()).limit(11).all()
         all_results[difficulty.value] = [record.to_dict() for record in top_10]
 
     return jsonify(all_results), 200
+
+
+@app.route("/open_mine", methods=['GET'])
+@token_required
+def open_mine(current_user):
+    try:
+        if current_user.coins >= 10:
+            current_user.coins -= 10
+            db.session.commit()
+            return jsonify({"message": "ok"}), 201
+        else: return jsonify({"message": "neok"}), 200
+    except Exception as err:
+        return jsonify({"error": err}), 400
+    
+
+@app.route("/get_coins", methods=['GET'])
+@token_required
+def get_coins(current_user):
+    try:
+        return jsonify({"coins": current_user.coins}), 200
+    except Exception as err:
+        return jsonify({"error": err}), 400
+
 
 @app.route('/admin', methods=['GET'])
 @admin_required
