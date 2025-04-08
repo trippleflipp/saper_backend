@@ -17,35 +17,51 @@ def new_record(current_user):
     except (ValueError, KeyError):
         return jsonify({'message': 'Invalid data. Requires: milliseconds (integer), difficulty (easy, medium, hard)'}), 400
 
-    new_record = Leaderboard(
-        created_at=datetime.datetime.now(),
-        milliseconds=milliseconds,
-        username=current_user.username,
+    # Проверяем существование предыдущего рекорда пользователя для данной сложности
+    existing_record = Leaderboard.query.filter_by(
         user_id=current_user.id,
         difficulty=difficulty
-    )
+    ).first()
 
-    db.session.add(new_record)
-    db.session.commit()
-    current_user.coins += 15
-    db.session.commit()
+    if existing_record:
+        # Если новый рекорд лучше предыдущего, обновляем его
+        if milliseconds < existing_record.milliseconds:
+            existing_record.milliseconds = milliseconds
+            existing_record.created_at = datetime.datetime.now()
+            db.session.commit()
+            current_user.coins += 15
+            db.session.commit()
+        else:
+            return jsonify({'message': 'New record submitted, but it is not in the top 10.'}), 200
+    else:
+        # Если рекорда нет, создаем новый
+        new_record = Leaderboard(
+            created_at=datetime.datetime.now(),
+            milliseconds=milliseconds,
+            username=current_user.username,
+            user_id=current_user.id,
+            difficulty=difficulty
+        )
+        db.session.add(new_record)
+        db.session.commit()
+        current_user.coins += 15
+        db.session.commit()
 
+    # Проверяем, попал ли рекорд в топ-10
     top_10 = Leaderboard.query.filter_by(difficulty=difficulty).order_by(Leaderboard.milliseconds.asc()).limit(10).all()
 
     if len(top_10) < 10 or milliseconds < top_10[-1].milliseconds:
         all_records = Leaderboard.query.filter_by(difficulty=difficulty).order_by(Leaderboard.milliseconds.asc()).all()
         if len(all_records) > 10:
-             record_to_remove = all_records[-1]
-             db.session.delete(record_to_remove)
-             db.session.commit()
+            record_to_remove = all_records[-1]
+            db.session.delete(record_to_remove)
+            db.session.commit()
         
         current_user.coins += 985
         db.session.commit()
 
         return jsonify({'message': 'New record submitted and is in the top 10!'}), 201
     else:
-        db.session.delete(new_record)
-        db.session.commit()
         return jsonify({'message': 'New record submitted, but it is not in the top 10.'}), 200
 
 
