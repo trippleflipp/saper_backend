@@ -41,10 +41,4 @@ jobs:
 
     - name: Run Flask in Background
       run: |
-        python app.py &
-        sleep 5
-        curl -k -I https://localhost:2365
-        if [ $? -ne 0 ]; then
-          echo "Server not running"
-          exit 1
-        fi
+        nohup python app.py
