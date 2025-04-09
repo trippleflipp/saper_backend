@@ -8,5 +8,5 @@ passlib
 python-dotenv
 psycopg2
 flask_bcrypt
-waitress
+waitress>=2.0.0
 pyopenssl
