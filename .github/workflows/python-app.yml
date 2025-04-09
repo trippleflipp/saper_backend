@@ -17,13 +17,13 @@ jobs:
     - name: Create .env
       run: |
         touch .env
-        echo echo user=${{ secrets.user }} >> .env
-        echo echo password=${{ secrets.password }} >> .env
-        echo echo host=${{ secrets.host }} >> .env
-        echo echo port=${{ secrets.port }} >> .env
-        echo echo dbname=${{ secrets.dbname }} >> .env
-        echo echo sender_mail=${{ secrets.sender_mail }} >> .env
-        echo echo sender_password=${{ secrets.sender_password }} >> .env
+        echo echo user=${{ secrets.USER }} >> .env
+        echo echo password=${{ secrets.PASSWORD }} >> .env
+        echo echo host=${{ secrets.HOST }} >> .env
+        echo echo port=${{ secrets.PORT }} >> .env
+        echo echo dbname=${{ secrets.DBNAME }} >> .env
+        echo echo sender_mail=${{ secrets.SENDER_MAIL }} >> .env
+        echo echo sender_password=${{ secrets.SENDER_PASSWORD }} >> .env
 
     - name: Set up Python 3.11
       uses: actions/setup-python@v3
