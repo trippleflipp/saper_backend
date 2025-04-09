@@ -1,6 +1,7 @@
 from app import create_app, db
 from waitress import serve
 import ssl
+import waitress # Import waitress here as well
 
 app = create_app()
 
@@ -15,5 +16,6 @@ if __name__ == '__main__':
     context.load_cert_chain(cert_file, key_file)
 
     # Serve the app with SSL
+    print(f"Waitress version: {waitress.__version__}") # Print version to confirm
     serve(app, host="0.0.0.0", port=443, ssl_context=context)
     #app.run(debug=True)
