@@ -7,8 +7,8 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
 
-    cert_file = "77.221.136.55.pem"
-    key_file = "77.221.136.55-key.pem"
+    cert_file = "ssl_cert.pem"
+    key_file = "ssl_key.pem"
     port = 2365
 
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
