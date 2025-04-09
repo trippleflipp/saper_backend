@@ -35,7 +35,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Generate ssl and build
+    - name: Generate ssl
       run: |
         python ssl_gen.py
-        python app.py
+
+    - name: Run Flask in Background
+      run: |
+        python app.py &
+        sleep 5
+        curl -k -I https://127.0.0.1:2365
+        if [ $? -ne 0 ]; then
+          echo "Server not running"
+          exit 1
+        fi
