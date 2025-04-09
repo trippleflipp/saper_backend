@@ -39,6 +39,7 @@ jobs:
       run: |
         python ssl_gen.py
 
-    - name: Run Flask in Background
+    - name: Run Flask in Background (with logging)
       run: |
-        nohup python app.py
+        nohup python app.py > app.log 2>&1 &
+        echo "Flask app started in background. Check app.log for output."
