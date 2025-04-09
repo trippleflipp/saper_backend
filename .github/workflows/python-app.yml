@@ -41,5 +41,4 @@ jobs:
 
     - name: Run Flask in Background (with logging)
       run: |
-        nohup python app.py > app.log 2>&1 &
-        echo "Flask app started in background. Check app.log for output."
+        python app.py
