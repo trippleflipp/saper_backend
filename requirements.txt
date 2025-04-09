@@ -9,4 +9,3 @@ python-dotenv
 psycopg2
 flask_bcrypt
 pyopenssl
-flask-talisman
