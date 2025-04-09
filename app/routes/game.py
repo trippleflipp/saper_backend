@@ -17,6 +17,9 @@ def new_record(current_user):
     except (ValueError, KeyError):
         return jsonify({'message': 'Invalid data. Requires: milliseconds (integer), difficulty (easy, medium, hard)'}), 400
 
+    if not current_user.is_verified:
+        return jsonify({'message': 'User is not verified'}), 400
+
     # Проверяем существование предыдущего рекорда пользователя для данной сложности
     existing_record = Leaderboard.query.filter_by(
         user_id=current_user.id,

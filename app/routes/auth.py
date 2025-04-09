@@ -27,11 +27,7 @@ def register():
     existing_user_email = User.query.filter(User.email == email).first()
 
     if existing_user_username or existing_user_email:
-        if existing_user_username.is_verified or existing_user_email.is_verified:
-            return jsonify({'message': 'Username already exists'}), 400
-        else:
-            db.session.delete(existing_user_username)
-            db.session.commit()
+        return jsonify({'message': 'Username already exists'}), 400
 
     # Generate verification code and store it
     verification_code = generate_verification_code()
