@@ -1,7 +1,13 @@
 from app import create_app, db
-from waitress import serve
 import ssl
-import waitress # Import waitress here as well
+try:
+    from waitress import serve
+    import waitress  # Import waitress here as well
+except ImportError as e:
+    print(f"Error importing waitress: {e}")
+    print("Please ensure waitress is installed.  Try: pip install waitress")
+    exit(1)
+
 
 app = create_app()
 
@@ -16,6 +22,9 @@ if __name__ == '__main__':
     context.load_cert_chain(cert_file, key_file)
 
     # Serve the app with SSL
-    print(f"Waitress version: {waitress.__version__}") # Print version to confirm
+    try:
+        print(f"Waitress version: {waitress.__version__}")  # Print version to confirm
+    except AttributeError:
+        print("Waitress version check failed.  __version__ attribute not found.")
     serve(app, host="0.0.0.0", port=443, ssl_context=context)
     #app.run(debug=True)
