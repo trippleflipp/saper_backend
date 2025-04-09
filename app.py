@@ -14,4 +14,4 @@ if __name__ == '__main__':
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     context.load_cert_chain(cert_file, key_file)
 
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, ssl_context=context)
