@@ -9,8 +9,9 @@ if __name__ == '__main__':
 
     cert_file = "ssl_cert.pem"
     key_file = "ssl_key.pem"
+    port = 2365
 
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     context.load_cert_chain(cert_file, key_file)
 
-    app.run(host="77.221.136.55", port=2365, ssl_context=(cert_file, key_file))
+    app.run(host="0.0.0.0", port=port, ssl_context=context)
