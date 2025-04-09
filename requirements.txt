@@ -8,3 +8,4 @@ passlib
 python-dotenv
 psycopg2
 flask_bcrypt
+waitress
