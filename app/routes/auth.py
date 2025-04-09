@@ -24,18 +24,20 @@ def register():
 
     # Check if username or email already exists
     existing_user_username = User.query.filter(User.username == username).first()
-    if existing_user_username:
-        return jsonify({'message': 'Username already exists'}), 400
-
     existing_user_email = User.query.filter(User.email == email).first()
-    if existing_user_email:
-        return jsonify({'message': 'Email already exists'}), 400
+
+    if existing_user_username or existing_user_email:
+        if existing_user_username.is_verified or existing_user_email.is_verified:
+            return jsonify({'message': 'Username already exists'}), 400
+        else:
+            db.session.delete(existing_user_username)
+            db.session.commit()
 
     # Generate verification code and store it
     verification_code = generate_verification_code()
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    new_user = User(username=username, password=hashed_password, email=email, verification_code=verification_code)
+    new_user = User(username=username, password=hashed_password, email=email, verification_code=verification_code, is_verified=False)
 
     db.session.add(new_user)
     db.session.commit()
@@ -90,6 +92,9 @@ def login():
 
     if not user or not bcrypt.check_password_hash(user.password, password):
         return jsonify({'message': 'Invalid username or password'}), 401
+
+    if not user.is_verified:
+        return jsonify({'message': 'Please verify your email before logging in'}), 403
 
     token = generate_token(user)
     return jsonify({'access_token': token}), 200
