@@ -22,9 +22,5 @@ if __name__ == '__main__':
     context.load_cert_chain(cert_file, key_file)
 
     # Serve the app with SSL
-    try:
-        print(f"Waitress version: {waitress.__version__}")  # Print version to confirm
-    except AttributeError:
-        print("Waitress version check failed.  __version__ attribute not found.")
-    serve(app, host="0.0.0.0", port=443, ssl_context=context)
+    serve(app, host="0.0.0.0", port=443, ssl=context)
     #app.run(debug=True)
