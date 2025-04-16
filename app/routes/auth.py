@@ -30,6 +30,37 @@ def login():
 
     if not user.is_verified:
         return jsonify({'message': 'Please verify your email before logging in'}), 403
+    
+    if user.enabled_2fa:
+        return jsonify({'requires_2fa': True}), 200
+
+    token = generate_token(user)
+    return jsonify({'access_token': token}), 200
+
+
+@auth_bp.route('/verify_2fa_login', methods=['POST'])
+def verify_2fa_login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    otp = data.get('otp')
+
+    if not username or not password or not otp:
+        return jsonify({'message': 'Username, password and OTP are required'}), 400
+
+    user = User.query.filter_by(username=username).first()
+
+    if not user or not bcrypt.check_password_hash(user.password, password):
+        return jsonify({'message': 'Invalid username or password'}), 401
+
+    if not user.is_verified:
+        return jsonify({'message': 'Please verify your email before logging in'}), 403
+
+    if not user.enabled_2fa:
+        return jsonify({'message': '2FA is not enabled for this user'}), 400
+
+    if not onetimepass.valid_totp(otp, user.secret_2fa):
+        return jsonify({'message': 'Invalid 2FA code'}), 401
 
     token = generate_token(user)
     return jsonify({'access_token': token}), 200
@@ -148,6 +179,18 @@ def reset_password():
 
 
 # 2FA ROUTES
+@auth_bp.route('/status_2fa', methods=['GET'])
+@token_required
+def status_2fa(current_user):
+    try:
+        if current_user.enabled_2fa == True:
+            return jsonify({ 'message': 'enabled' }), 200
+        else:
+            return jsonify({ 'message': 'disabled' }), 200
+    except Exception as err:
+        return jsonify({ 'message': f'{err}' }), 400
+
+
 @auth_bp.route('/enable_2fa', methods=['GET'])
 @token_required
 def enable_2fa(current_user):
@@ -199,6 +242,15 @@ def verify_2fa(current_user):
 
     try:
         if onetimepass.valid_totp(otp, current_user.secret_2fa):
-            return jsonify({ 'message': 'Success' }), 200
+            user = db.session.query(User).get(current_user.id)
+            if user:
+                user.enabled_2fa = True
+                db.session.commit()
+                return jsonify({ 'message': 'Success' }), 200
+            else:
+                return jsonify({ 'message': 'User not found' }), 404
+        else:
+            return jsonify({ 'message': 'Invalid Code' }), 200
     except Exception as err:
+        db.session.rollback()
         return jsonify({ 'message': f'{err}' }), 400
