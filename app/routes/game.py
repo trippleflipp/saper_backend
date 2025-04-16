@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 import datetime
 from app import db
-from app.models import User, Leaderboard, Difficulty
+from app.models import Leaderboard, Difficulty
 from app.utils.auth import token_required
 
+
 game_bp = Blueprint('game', __name__)
+
 
 @game_bp.route("/new_record", methods=['POST'])
 @token_required
@@ -20,14 +22,12 @@ def new_record(current_user):
     if not current_user.is_verified:
         return jsonify({'message': 'User is not verified'}), 400
 
-    # Проверяем существование предыдущего рекорда пользователя для данной сложности
     existing_record = Leaderboard.query.filter_by(
         user_id=current_user.id,
         difficulty=difficulty
     ).first()
 
     if existing_record:
-        # Если новый рекорд лучше предыдущего, обновляем его
         if milliseconds < existing_record.milliseconds:
             existing_record.milliseconds = milliseconds
             existing_record.created_at = datetime.datetime.now()
@@ -37,7 +37,6 @@ def new_record(current_user):
         else:
             return jsonify({'message': 'New record submitted, but it is not in the top 10.'}), 200
     else:
-        # Если рекорда нет, создаем новый
         new_record = Leaderboard(
             created_at=datetime.datetime.now(),
             milliseconds=milliseconds,
@@ -50,7 +49,6 @@ def new_record(current_user):
         current_user.coins += 15
         db.session.commit()
 
-    # Проверяем, попал ли рекорд в топ-10
     top_10 = Leaderboard.query.filter_by(difficulty=difficulty).order_by(Leaderboard.milliseconds.asc()).limit(10).all()
 
     if len(top_10) < 10 or milliseconds < top_10[-1].milliseconds:

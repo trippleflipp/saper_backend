@@ -2,6 +2,7 @@ import datetime
 import jwt
 from flask import current_app
 
+
 def generate_token(user):
     payload = {
         'id': user.id,

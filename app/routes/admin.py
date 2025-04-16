@@ -2,7 +2,9 @@ from flask import Blueprint, jsonify
 from app.models import User
 from app.utils.auth import admin_required
 
+
 admin_bp = Blueprint('admin', __name__)
+
 
 @admin_bp.route('/admin', methods=['GET'])
 @admin_required

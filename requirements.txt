@@ -9,3 +9,6 @@ python-dotenv
 psycopg2
 flask_bcrypt
 pyopenssl
+pyqrcode
+Pillow
+onetimepass

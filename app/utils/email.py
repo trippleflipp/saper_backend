@@ -4,8 +4,10 @@ from email.mime.text import MIMEText
 from email.header import Header
 from config import SENDER_MAIL, SENDER_PASSWORD
 
+
 def generate_verification_code():
     return str(random.randint(100000, 999999))
+
 
 def send_verification(recipient_email, verification_code):
     subject = "Подтверждение почты в сапёре"

@@ -9,6 +9,8 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     verification_code = db.Column(db.String(6), nullable=True)
     is_verified = db.Column(db.Boolean, default=False)
+    secret_2fa = db.Column(db.String(16), nullable=True)
+    enabled_2fa = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f"User('{self.username}', '{self.role}')"
@@ -22,4 +24,6 @@ class User(db.Model):
             'email': self.email,
             'verification_code': self.verification_code,
             'is_verified': self.is_verified,
+            'secret_2fa': self.secret_2fa,
+            'enabled_2fa': self.enabled_2fa
         } 

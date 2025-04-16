@@ -2,6 +2,9 @@ from functools import wraps
 from flask import request, jsonify
 from app.models import User
 from app.utils.token import verify_token
+import base64
+import os
+
 
 def token_required(f):
     @wraps(f)
@@ -37,4 +40,8 @@ def admin_required(f):
 
         return f(current_user, *args, **kwargs)
 
-    return decorated 
+    return decorated
+
+
+def generate_secret():
+    return base64.b32encode(os.urandom(10)).decode('utf-8')
