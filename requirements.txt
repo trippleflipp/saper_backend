@@ -12,3 +12,4 @@ pyopenssl
 pyqrcode
 Pillow
 onetimepass
+pypng
