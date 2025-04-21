@@ -76,6 +76,20 @@ def get_records():
     return jsonify(all_results), 200
 
 
+@game_bp.route("/get_personal_records", methods=['GET'])
+@token_required
+def get_personal_records(current_user):
+    records_list = []
+    records = Leaderboard.query.filter_by(user_id=current_user.id).all()
+    for record in records:
+        records_list.append({
+            'milliseconds': record.milliseconds,
+            'difficulty': record.difficulty.value
+        })
+
+    return jsonify(records_list), 200
+
+
 @game_bp.route("/open_mine", methods=['GET'])
 @token_required
 def open_mine(current_user):
