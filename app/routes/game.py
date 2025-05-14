@@ -120,7 +120,7 @@ def get_available_bg(current_user):
     except Exception as err:
         return jsonify({"error": err}), 400
     
-@game_bp.route("/add_bg", methods=['GET'])
+@game_bp.route("/add_bg", methods=['POST'])
 @token_required
 def add_bg(current_user, bg):
     try:
