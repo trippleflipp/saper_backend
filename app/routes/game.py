@@ -125,8 +125,8 @@ def get_available_bg(current_user):
 def add_bg(current_user):
     try:
         data = request.get_json()
-        current_user.available_bg += f"{data.id},"
-        current_user.coins -= data.price
+        current_user.available_bg += f"{data.get('id')},"
+        current_user.coins -= data.get('price')
         db.session.commit()
         return jsonify({"message": "ok"}), 201
     except Exception as err:
