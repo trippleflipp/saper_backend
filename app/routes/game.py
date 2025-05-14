@@ -122,10 +122,11 @@ def get_available_bg(current_user):
     
 @game_bp.route("/add_bg", methods=['POST'])
 @token_required
-def add_bg(current_user, id, price):
+def add_bg(current_user):
     try:
-        current_user.available_bg += f"{id},"
-        current_user.coins -= price
+        data = request.get_json()
+        current_user.available_bg += f"{data.id},"
+        current_user.coins -= data.price
         db.session.commit()
         return jsonify({"message": "ok"}), 201
     except Exception as err:
