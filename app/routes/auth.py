@@ -89,7 +89,7 @@ def register():
     verification_code = generate_verification_code()
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-    new_user = User(username=username, password=hashed_password, email=email, verification_code=verification_code, is_verified=False)
+    new_user = User(username=username, password=hashed_password, email=email, verification_code=verification_code, is_verified=False, available_bg='')
 
     db.session.add(new_user)
     db.session.commit()
