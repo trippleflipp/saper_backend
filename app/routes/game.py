@@ -111,3 +111,24 @@ def get_coins(current_user):
         return jsonify({"coins": current_user.coins}), 200
     except Exception as err:
         return jsonify({"error": err}), 400 
+    
+@game_bp.route("/get_available_bg", methods=['GET'])
+@token_required
+def get_available_bg(current_user):
+    try:
+        return jsonify({"available_bg": current_user.available_bg}), 200
+    except Exception as err:
+        return jsonify({"error": err}), 400
+    
+@game_bp.route("/add_bg", methods=['GET'])
+@token_required
+def add_bg(current_user, bg):
+    try:
+        current_user.available_bg += f"{bg.id},"
+        current_user.coins -= bg.price
+        db.session.commit()
+        return jsonify({"message": "ok"}), 201
+    except Exception as err:
+        return jsonify({"error": err}), 400
+        
+        
