@@ -11,7 +11,7 @@ class User(db.Model):
     is_verified = db.Column(db.Boolean, default=False)
     secret_2fa = db.Column(db.String(16), nullable=True)
     enabled_2fa = db.Column(db.Boolean, default=False)
-    available_bg = db.Column(db.String(800), nullable=True)
+    available_bg = db.Column(db.String(800), nullable=False)
 
     def __repr__(self):
         return f"User('{self.username}', '{self.role}')"
