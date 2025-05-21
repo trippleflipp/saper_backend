@@ -12,6 +12,8 @@ class User(db.Model):
     secret_2fa = db.Column(db.String(16), nullable=True)
     enabled_2fa = db.Column(db.Boolean, default=False)
     available_bg = db.Column(db.String(800), nullable=False)
+    attempts = db.Column(db.Integer, nullable=False)
+    ban_until = db.Column(db.Datetime(timezone=True))
 
     def __repr__(self):
         return f"User('{self.username}', '{self.role}')"

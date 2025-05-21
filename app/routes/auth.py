@@ -7,6 +7,7 @@ from io import BytesIO
 from app.utils.auth import token_required, generate_secret
 from app.utils.email import generate_verification_code, send_verification
 from app.utils.token import generate_token
+from datetime import datetime, timezone, timedelta
 
 
 auth_bp = Blueprint('auth', __name__)
@@ -25,7 +26,17 @@ def login():
 
     user = User.query.filter_by(username=username).first()
 
-    if not user or not bcrypt.check_password_hash(user.password, password):
+    if not user:
+        return jsonify({'message': 'Invalid username or password'}), 401
+
+    if user.ban_until and user.ban_until > datetime.now(timezone.utc):
+        return jsonify({'message': 'Your account is banned until ' + str(user.ban_until)}), 403
+
+    if not bcrypt.check_password_hash(user.password, password):
+        user.attempts += 1
+        if user.attempts >= 5:
+            user.ban_until = datetime.now(timezone.utc) + timedelta(minutes=5)
+        db.session.commit()
         return jsonify({'message': 'Invalid username or password'}), 401
 
     if not user.is_verified:
@@ -34,6 +45,9 @@ def login():
     if user.enabled_2fa:
         return jsonify({'requires_2fa': True}), 200
 
+    user.attempts = 0  # Сбрасываем счетчик попыток при успешном входе
+    user.ban_until = None
+    db.session.commit()
     token = generate_token(user)
     return jsonify({'access_token': token}), 200
 
@@ -50,7 +64,17 @@ def verify_2fa_login():
 
     user = User.query.filter_by(username=username).first()
 
-    if not user or not bcrypt.check_password_hash(user.password, password):
+    if not user:
+        return jsonify({'message': 'Invalid username or password'}), 401
+
+    if user.ban_until and user.ban_until > datetime.now(timezone.utc):
+        return jsonify({'message': 'Your account is banned until ' + str(user.ban_until)}), 403
+
+    if not bcrypt.check_password_hash(user.password, password):
+        user.attempts += 1
+        if user.attempts >= 5:
+            user.ban_until = datetime.now(timezone.utc) + timedelta(minutes=5)
+        db.session.commit()
         return jsonify({'message': 'Invalid username or password'}), 401
 
     if not user.is_verified:
@@ -60,8 +84,15 @@ def verify_2fa_login():
         return jsonify({'message': '2FA is not enabled for this user'}), 400
 
     if not onetimepass.valid_totp(otp, user.secret_2fa):
+        user.attempts += 1
+        if user.attempts >= 5:
+            user.ban_until = datetime.now(timezone.utc) + timedelta(minutes=5)
+        db.session.commit()
         return jsonify({'message': 'Invalid 2FA code'}), 401
 
+    user.attempts = 0  # Сбрасываем счетчик попыток при успешном входе
+    user.ban_until = None
+    db.session.commit()
     token = generate_token(user)
     return jsonify({'access_token': token}), 200
 
