@@ -13,7 +13,7 @@ class User(db.Model):
     enabled_2fa = db.Column(db.Boolean, default=False)
     available_bg = db.Column(db.String(800), nullable=False)
     attempts = db.Column(db.Integer, nullable=False)
-    ban_until = db.Column(db.Datetime(timezone=True))
+    ban_until = db.Column(db.DateTime(timezone=True))
 
     def __repr__(self):
         return f"User('{self.username}', '{self.role}')"
@@ -28,5 +28,8 @@ class User(db.Model):
             'verification_code': self.verification_code,
             'is_verified': self.is_verified,
             'secret_2fa': self.secret_2fa,
-            'enabled_2fa': self.enabled_2fa
+            'enabled_2fa': self.enabled_2fa,
+            'available_bg': self.available_bg,
+            'attempts': self.attempts,
+            'ban_until': self.ban_until
         } 
